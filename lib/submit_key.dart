@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:wordle/main.dart';
+import 'package:wordle/constants/app_colors.dart';
 
-class BackspaceKey extends StatelessWidget {
-  const BackspaceKey({
+class SubmitKey extends StatelessWidget {
+  const SubmitKey({
     Key? key,
-    required this.onBackspace,
+    required this.onSubmit,
     this.flex = 1,
   }) : super(key: key);
-  final VoidCallback onBackspace;
+  final VoidCallback onSubmit;
   final int flex;
   @override
   Widget build(BuildContext context) {
@@ -16,13 +16,13 @@ class BackspaceKey extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(3.0),
         child: Material(
-          color: keysColor,
+          color: AppColors.letterRight,
           child: InkWell(
             onTap: () {
-              onBackspace.call();
+              onSubmit.call();
             },
             child: const Center(
-              child: Icon(Icons.backspace, color: letterColor),
+              child: Icon(Icons.send, color: AppColors.letterColor),
             ),
           ),
         ),

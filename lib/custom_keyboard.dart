@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:wordle/main.dart';
-import 'package:wordle/submitKey.dart';
+import 'package:wordle/constants/app_colors.dart';
+import 'package:wordle/submit_key.dart';
 import 'package:wordle/textKey.dart';
 
-import 'backspaceKey.dart';
+import 'backspace_key.dart';
 
 
 class CustomKeyboard extends StatefulWidget {
@@ -41,7 +41,7 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
         top: MediaQuery.of(context).orientation == Orientation.portrait ? 12.0 : 6.0,
         bottom: MediaQuery.of(context).orientation == Orientation.portrait ? 12.0 : 6.0,
       ),
-      color: backColor,
+      color: AppColors.backColor,
       child: Column(        // <-- Column
         children: [
           buildRowOne(),    // <-- Row

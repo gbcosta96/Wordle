@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wordle/main.dart';
+import 'package:wordle/constants/app_colors.dart';
 
 class TextKey extends StatelessWidget {
   const TextKey({
@@ -20,7 +20,7 @@ class TextKey extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(3.0),
         child: Material(
-          color: wrong ? disableKeyColor : keysColor,
+          color: wrong ? AppColors.disableKeyColor : AppColors.keysColor,
           child: InkWell(
             onTap: () {
               if(!wrong){
@@ -31,7 +31,7 @@ class TextKey extends StatelessWidget {
               child: Text(
                 text,
                 style: TextStyle(
-                  color: wrong ? disableLetterColor : letterColor,
+                  color: wrong ? AppColors.disableLetterColor : AppColors.letterColor,
                   fontWeight: FontWeight.bold,
                 ),
               ),
