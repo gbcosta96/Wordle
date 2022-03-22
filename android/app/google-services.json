@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "707137472833",
+    "project_id": "wordvsword-ba8ef",
+    "storage_bucket": "wordvsword-ba8ef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:707137472833:android:682536fcfee9c81c5639c0",
+        "android_client_info": {
+          "package_name": "com.bertaluci.wordvsword"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "707137472833-p93bpjevo4l9v8i5ub0rgnmd2f7oe363.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5W21cGIxlOE6i68VQx1tIWMexAz-inRE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "707137472833-p93bpjevo4l9v8i5ub0rgnmd2f7oe363.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
