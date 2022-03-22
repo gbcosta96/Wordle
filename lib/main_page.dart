@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wordle/app_icon.dart';
 import 'package:wordle/constants/app_colors.dart';
 import 'package:wordle/custom_keyboard.dart';
 import 'package:wordle/tile.dart';
+import 'package:wordle/word_grid.dart';
 
 
 class MainPage extends StatefulWidget {
@@ -15,10 +17,10 @@ class MainPage extends StatefulWidget {
 
 
 class MainPageState extends State<MainPage> {
-  int gridLen = 0;
+  int wordLen = 0;
   FocusNode myFocusNode = FocusNode();
-  late List<List<Tile>> grid;
-  late Iterable<Tile> flattenedGrid = [];
+  late List<List<List<Tile>>> grid;
+  late List<Iterable<Tile>> flattenedGrid = [];
   late List<String> wrongs = [];
   late String guess = '';
   late String word;
@@ -52,22 +54,25 @@ class MainPageState extends State<MainPage> {
     lstStr = fileText.split('\n');
     word = lstStr[rdm.nextInt(lstStr.length)].trim();
     setState(() {
-      gridLen = word.length;
-      grid = List.generate(gridLen, (y) => List.generate(gridLen, (x) => Tile(x, y, " ", AppColors.letterNeutral)));
-      flattenedGrid = grid.expand((e) => e);
+      wordLen = word.length;
+      grid = List.generate(2, (player) => List.generate(7, (y) => List.generate(wordLen, (x) => Tile(x, y, " ", AppColors.letterNeutral))));
+      flattenedGrid = [];
+      for(var playersGrid in grid){
+        flattenedGrid.add(playersGrid.expand((e) => e));
+      }
     });
     
   }
 
   void _insertText(String text){
-    if(guess.length < gridLen && over == false){
+    if(guess.length < wordLen && over == false){
       guess += text;
       setState(() {
-        for(var i = 0; i < gridLen; i++){
-          grid[currentLine][i].val = ' ';
+        for(var i = 0; i < wordLen; i++){
+          grid[0][currentLine][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grid[currentLine][i].val = guess[i];
+          grid[0][currentLine][i].val = guess[i];
         }
       });
     }
@@ -77,18 +82,18 @@ class MainPageState extends State<MainPage> {
     if(guess.isNotEmpty){
       guess = guess.substring(0, guess.length - 1);
       setState(() {
-        for(var i = 0; i < gridLen; i++){
-          grid[currentLine][i].val = ' ';
+        for(var i = 0; i < wordLen; i++){
+          grid[0][currentLine][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grid[currentLine][i].val = guess[i];
+          grid[0][currentLine][i].val = guess[i];
         }
       });
     }
   }
 
   void _submit(){
-    if(guess.length == gridLen){
+    if(guess.length == wordLen){
       bool checkPossible = false;
       for(String possibleWords in lstStr){
         if(possibleWords.trim() == guess){
@@ -98,7 +103,7 @@ class MainPageState extends State<MainPage> {
       }
       if(checkPossible == true){
         _verifyWord();
-        if(currentLine < gridLen - 1){
+        if(currentLine < 6){
           currentLine++;
           guess = '';
         }
@@ -107,15 +112,12 @@ class MainPageState extends State<MainPage> {
         }
       }
       else{
-        guess = '';
-        setState(() {
-          for(var i = 0; i < gridLen; i++){
-            grid[currentLine][i].val = ' ';
-          }
-          for(var i = 0; i < guess.length; i++){
-            grid[currentLine][i].val = guess[i];
-          }
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Palavra inválida"),
+            duration: Duration(seconds: 1),
+          )
+        );
       }
     }
   }
@@ -130,18 +132,18 @@ class MainPageState extends State<MainPage> {
     
     for(var i = 0; i < _guess.length; i++){
       if(_guess[i] == _word[i]){
-        grid[currentLine][i].color = AppColors.letterRight;
+        grid[0][currentLine][i].color = AppColors.letterRight;
         _word[i] = "#";
       }
     }
     for(var i = 0; i < _guess.length; i++){
-      if(grid[currentLine][i].color == AppColors.letterNeutral){
+      if(grid[0][currentLine][i].color == AppColors.letterNeutral){
         if(_word.contains(_guess[i])){
           _word.remove(_guess[i]);
-          grid[currentLine][i].color = AppColors.letterPlace;
+          grid[0][currentLine][i].color = AppColors.letterPlace;
         }
         else{
-          grid[currentLine][i].color = AppColors.disableKeyColor;
+          grid[0][currentLine][i].color = AppColors.disableKeyColor;
           if(!word.contains(_guess[i])){ 
             wrongs.add(_guess[i]);
           }
@@ -151,26 +153,22 @@ class MainPageState extends State<MainPage> {
     setState(() { });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    double gridSize = min(MediaQuery.of(context).size.width*0.8, MediaQuery.of(context).size.height*0.50);
-    double tileSize = (gridSize - 2.5 * 2) / gridLen;
-    List<Widget> stackItems = [];
-    if(flattenedGrid.isNotEmpty)
-    {
-      stackItems.addAll(flattenedGrid.map((e) => Positioned(
-        left: e.x * tileSize,
-        top: e.y * tileSize,
-        width: tileSize,
-        height: tileSize,
-        child: Center(
+  Widget getTiles(Tile e, double tileSize) {
+    return Positioned(
+      left: e.x * tileSize,
+      top: e.y * tileSize,
+      width: tileSize,
+      height: tileSize,
+      child: Center(
+        child: Container(
+          width: tileSize - 1.5 * 2,
+          height: tileSize - 1.5 * 2,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6.0),
+            color: e.color,
+          ),
           child: Container(
-            width: tileSize - 1.5 * 2,
-            height: tileSize - 1.5 * 2,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6.0),
-              color: e.color,
-            ),
+            padding: const EdgeInsets.all(1.5),
             child: Center(
               child: FittedBox(
                 fit: BoxFit.fitHeight,
@@ -178,7 +176,7 @@ class MainPageState extends State<MainPage> {
                   e.val,
                   style: const TextStyle(
                     color: AppColors.letterColor,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     fontSize: 50,
                   ),
                 ),
@@ -186,8 +184,33 @@ class MainPageState extends State<MainPage> {
             ),
           ),
         ),
-      )));
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double gridWidth = MediaQuery.of(context).size.width*0.47;
+    double tileSize = (gridWidth - 1.5 * 2) / wordLen;
+    double gridHeight = tileSize*7 + 3;
+
+    if(gridHeight >= MediaQuery.of(context).size.height*0.60) {
+      print("Maior");
+      gridHeight = MediaQuery.of(context).size.height*0.60;
+      tileSize = (gridHeight - 1.5 * 2) / 7;
+      gridWidth = tileSize*wordLen + 3;
     }
+    List<List<Widget>> stackItems = [];
+    for(var flatGrids in flattenedGrid)
+    {
+      if(flatGrids.isNotEmpty)
+      {
+        List<Widget> items = [];
+        items.addAll(flatGrids.map((e) => getTiles(e, tileSize)));
+        stackItems.add(items);
+      }
+    }
+    
   
     return RawKeyboardListener(
       autofocus: true,
@@ -224,46 +247,60 @@ class MainPageState extends State<MainPage> {
         ),
         body: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: MediaQuery.of(context).size.height*0.05),
-              SizedBox(
-                width: gridSize,
-                height: MediaQuery.of(context).orientation == Orientation.portrait ? 
-                          MediaQuery.of(context).size.height*0.05 : MediaQuery.of(context).size.height*0.08,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    primary: AppColors.letterColor,
-                    backgroundColor: AppColors.letterRight,
-                  ),
-                  onPressed: () {asyncInit();},
-                  child: const Text('Nova Palavra')
-                ),
-              ),
-              SizedBox(height: MediaQuery.of(context).size.height*0.05),
               Container(
-                width: gridSize,
-                height: gridSize,
-                padding: const EdgeInsets.all(2.5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                  color: AppColors.backColor,
+                margin: EdgeInsets.only(
+                  top: MediaQuery.of(context).size.height*0.05,
+                  left: MediaQuery.of(context).size.width*0.05,
+                  right :MediaQuery.of(context).size.width*0.05,
                 ),
-                child: Stack(
-                    children: stackItems,
+                height: MediaQuery.of(context).size.height*0.05,
+                child: Row(
+                  children: [
+                    AppIcon(iconData: Icons.replay_outlined, onTap: () => asyncInit()),
+                    const SizedBox(width: 10),
+                    AppIcon(iconData: Icons.book, onTap: () => {}),
+                    const SizedBox(width: 10),
+                    AppIcon(iconData: Icons.share, onTap: () => {})
+                  ],
                 ),
               ),
-              over == true ?
-              SizedBox(
-                height: 20,
-                child: Text(
-                  word,
-                  style: const TextStyle(
-                    color: AppColors.letterColor,
-                    fontWeight: FontWeight.bold
-                  ),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        WordGrid(
+                          gridWidth: gridWidth,
+                          gridHeight: gridHeight,
+                          playerName: "Player 1",
+                          stackItems: stackItems[0],
+                        ),
+                        WordGrid(
+                          gridWidth: gridWidth,
+                          gridHeight: gridHeight,
+                          playerName: "Player 2",
+                          stackItems: stackItems[1]
+                        ),
+                      ],
+                    ),
+                    over == true ?
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height*0.02,
+                      child: Text(
+                        word,
+                        style: const TextStyle(
+                          color: AppColors.letterColor,
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ) : SizedBox(height: MediaQuery.of(context).size.height*0.02),            
+                  ],
                 ),
-              ) : const SizedBox(),            
+              ),
             ],
           ),
         ),

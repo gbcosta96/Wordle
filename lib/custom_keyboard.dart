@@ -34,14 +34,12 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height*0.25,
-      padding: EdgeInsets.only(
+      height: MediaQuery.of(context).size.height*0.27,
+      padding: const EdgeInsets.only(
         left: 6.0,
         right: 6.0,
-        top: MediaQuery.of(context).orientation == Orientation.portrait ? 12.0 : 6.0,
-        bottom: MediaQuery.of(context).orientation == Orientation.portrait ? 12.0 : 6.0,
+        bottom: 3.0,
       ),
-      color: AppColors.backColor,
       child: Column(        // <-- Column
         children: [
           buildRowOne(),    // <-- Row

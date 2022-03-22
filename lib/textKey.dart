@@ -18,7 +18,7 @@ class TextKey extends StatelessWidget {
     return Expanded(
       flex: flex,
       child: Padding(
-        padding: const EdgeInsets.all(3.0),
+        padding: const EdgeInsets.all(2.0),
         child: Material(
           color: wrong ? AppColors.disableKeyColor : AppColors.keysColor,
           child: InkWell(
