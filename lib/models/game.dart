@@ -53,8 +53,8 @@ List<Map<String, dynamic>>? _playerList(List<Player>? players) {
     return null;
   }
   final playerMap = <Map<String, dynamic>>[];
-  players.forEach((player) {
+  for (var player in players) {
     playerMap.add(player.toJson());
-  });
+  }
   return playerMap;
 }

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wordle/models/guess.dart';
 
 class Player {
@@ -42,8 +41,8 @@ List<Map<String, dynamic>>? _guessList(List<Guess>? guesses) {
     return null;
   }
   final guessMap = <Map<String, dynamic>>[];
-  guesses.forEach((guess) {
+  for (var guess in guesses) {
     guessMap.add(guess.toJson());
-  });
+  }
   return guessMap;
 }

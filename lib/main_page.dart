@@ -33,19 +33,15 @@ class MainPageState extends State<MainPage> {
   bool over = false;
   late List<String> lstStr;
   String gameId = "6TfrtZAHSH6qp1jljkr3";
-  String name = "mormob";
-  late Game game;
+  String name = "gbcosta96";
+  Game? game;
   List<List<Widget>> stackItems = [];
 
   final DataRepository repository = DataRepository();
 
   Future<String> _read() async {
     String text = '';
-    try {
-      text = await rootBundle.loadString('assets/words.txt');
-    } 
-    catch (e) {
-    }
+    text = await rootBundle.loadString('assets/words.txt');
     return text;
   }
   
@@ -60,7 +56,7 @@ class MainPageState extends State<MainPage> {
     lstStr = fileText.split('\n');
     final stream = await repository.getDocument(gameId);
     game = Game.fromSnapshot(stream);
-    resetWord(game.players.indexWhere((element) => element.name == name) == 1);
+    resetWord(game!.players.indexWhere((element) => element.name == name) == 1);
   }
 
   void resetWord(bool database) async {
@@ -72,13 +68,13 @@ class MainPageState extends State<MainPage> {
     over = false;
     final stream = await repository.getDocument(gameId);
     game = Game.fromSnapshot(stream);
-    word = database ? game.word : lstStr[rdm.nextInt(lstStr.length)].trim();
+    word = database ? game!.word : lstStr[rdm.nextInt(lstStr.length)].trim();
     if(!database){
-      game.word = word;
-      game.players[0].guesses = null;
-      game.players[1].guesses = null;
-      game.reset = true;
-      repository.updateGame(game);
+      game!.word = word;
+      game!.players[0].guesses = null;
+      game!.players[1].guesses = null;
+      game!.reset = true;
+      repository.updateGame(game!);
     }
 
     setState(() {
@@ -97,10 +93,10 @@ class MainPageState extends State<MainPage> {
       guess += text;
       setState(() {
         for(var i = 0; i < wordLen; i++){
-          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].val = ' ';
+          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].val = guess[i];
+          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].val = guess[i];
         }
       });
     }
@@ -111,10 +107,10 @@ class MainPageState extends State<MainPage> {
       guess = guess.substring(0, guess.length - 1);
       setState(() {
         for(var i = 0; i < wordLen; i++){
-          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].val = ' ';
+          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].val = guess[i];
+          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].val = guess[i];
         }
       });
     }
@@ -160,19 +156,19 @@ class MainPageState extends State<MainPage> {
     
     for(var i = 0; i < _guess.length; i++){
       if(_guess[i] == _word[i]){
-        grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.letterRight;
+        grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.letterRight;
         rights.add(_guess[i]);
         _word[i] = "#";
       }
     }
     for(var i = 0; i < _guess.length; i++){
-      if(grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterNeutral){
+      if(grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterNeutral){
         if(_word.contains(_guess[i])){
           _word.remove(_guess[i]);
-          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.letterPlace;
+          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.letterPlace;
         }
         else{
-          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.disableKeyColor;
+          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.disableKeyColor;
           if(!word.contains(_guess[i])){ 
             wrongs.add(_guess[i]);
           }
@@ -182,19 +178,19 @@ class MainPageState extends State<MainPage> {
     
     List<String> res = [];
     for(var i = 0; i < _guess.length; i++){
-      if(grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterRight) {
+      if(grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterRight) {
         res.add("2");
-      } else if(grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterPlace) {
+      } else if(grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterPlace) {
         res.add("1");
       } else {
         res.add("0");
       }
     }
-    if(game.players[game.players.indexWhere((element) => element.name == name)].guesses == null){
-      game.players[game.players.indexWhere((element) => element.name == name)].guesses = [];
+    if(game!.players[game!.players.indexWhere((element) => element.name == name)].guesses == null){
+      game!.players[game!.players.indexWhere((element) => element.name == name)].guesses = [];
     }
-    game.players[game.players.indexWhere((element) => element.name == name)].guesses?.add(Guess(word: guess, result: res.join('')));
-    repository.updateGame(game);
+    game!.players[game!.players.indexWhere((element) => element.name == name)].guesses?.add(Guess(word: guess, result: res.join('')));
+    repository.updateGame(game!);
     setState(() { });
   }
 
@@ -253,7 +249,6 @@ class MainPageState extends State<MainPage> {
     double gridHeight = tileSize*7 + 3;
 
     if(gridHeight >= MediaQuery.of(context).size.height*0.60) {
-      print("Maior");
       gridHeight = MediaQuery.of(context).size.height*0.60;
       tileSize = (gridHeight - 1.5 * 2) / 7;
       gridWidth = tileSize*wordLen + 3;
@@ -307,8 +302,8 @@ class MainPageState extends State<MainPage> {
                 height: MediaQuery.of(context).size.height*0.05,
                 child: Row(
                   children: [
-                    game.players.indexWhere((element) => element.name == name) == 0 ? AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(false)) : const SizedBox(),
-                    game.players.indexWhere((element) => element.name == name) == 0 ? const SizedBox(width: 10) : const SizedBox(),
+                    game?.players.indexWhere((element) => element.name == name) == 0 ? AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(false)) : const SizedBox(),
+                    game?.players.indexWhere((element) => element.name == name) == 0 ? const SizedBox(width: 10) : const SizedBox(),
                     AppIcon(iconData: Icons.book, onTap: () => {}),
                     const SizedBox(width: 10),
                     AppIcon(iconData: Icons.share, onTap: () => {})
@@ -323,41 +318,44 @@ class MainPageState extends State<MainPage> {
                     StreamBuilder<DocumentSnapshot>(
                       stream: repository.getDocumentSnap(gameId),
                       builder: (context, snapshot) {
-                        game = Game.fromSnapshot(snapshot.data!);
-                        print(game.players.indexWhere((element) => element.name == name));
-                        if(snapshot.hasData && game.players.indexWhere((element) => element.name == name) == 1 && game.reset == true)
-                        {
-                          resetWord(true);
-                          game.reset = false;
-                          repository.updateGame(game);
-                        }
-                        if(game.players.firstWhere((element) => element.name != name).guesses != null) {
-                          for(int i = 0; i < game.players.firstWhere((element) => element.name != name).guesses!.length; i++) {
-                            for(int j = 0; j < wordLen; j++) {
-                              String _res = game.players.firstWhere((element) => element.name != name).guesses![i].result[j];
-                              grid[game.players.indexWhere((element) => element.name != name)][i][j].color = _res == "2" ? AppColors.letterRight : _res ==  "1" ? AppColors.letterPlace : AppColors.disableKeyColor;
-                            }
+                        if(snapshot.hasData) {
+                          game = Game.fromSnapshot(snapshot.data!);
+                          if(game!.players.indexWhere((element) => element.name == name) == 1 && game!.reset == true)
+                          {
+                            resetWord(true);
+                            game!.reset = false;
+                            repository.updateGame(game!);
                           }
-                          updateStack(tileSize);
-                        }                    
+                          if(game!.players.firstWhere((element) => element.name != name).guesses != null) {
+                            for(int i = 0; i < game!.players.firstWhere((element) => element.name != name).guesses!.length; i++) {
+                              for(int j = 0; j < wordLen; j++) {
+                                String _res = game!.players.firstWhere((element) => element.name != name).guesses![i].result[j];
+                                grid[game!.players.indexWhere((element) => element.name != name)][i][j].color = _res == "2" ? AppColors.letterRight : _res ==  "1" ? AppColors.letterPlace : AppColors.disableKeyColor;
+                              }
+                            }
+                            updateStack(tileSize);
+                          } 
+                        }
 
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
+                            stackItems.isNotEmpty ?
                             WordGrid(
                               gridWidth: gridWidth,
                               gridHeight: gridHeight,
-                              playerName: snapshot.hasData ? game.players[0].name : "Waiting...",
+                              playerName: snapshot.hasData ? game!.players[0].name : "Waiting...",
                               stackItems: stackItems[0],
                               iconColor: snapshot.hasData ? AppColors.letterRight : AppColors.disableKeyColor,
-                            ),
+                            ) : const SizedBox(),
+                            stackItems.length >= 2 ?
                             WordGrid(
                               gridWidth: gridWidth,
                               gridHeight: gridHeight,
-                              playerName: snapshot.hasData && game.players.length > 1 ? game.players[1].name : "Waiting...",
+                              playerName: snapshot.hasData && game!.players.length > 1 ? game!.players[1].name : "Waiting...",
                               stackItems: stackItems[1],
-                              iconColor: snapshot.hasData && game.players.length > 1 ? AppColors.letterRight : AppColors.disableKeyColor,
-                            ),
+                              iconColor: snapshot.hasData && game!.players.length > 1 ? AppColors.letterRight : AppColors.disableKeyColor,
+                            ) : const SizedBox(),
                           ],
                         );
                       }

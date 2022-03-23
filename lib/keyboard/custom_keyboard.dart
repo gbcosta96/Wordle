@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wordle/keyboard/submit_key.dart';
-import 'package:wordle/keyboard/textKey.dart';
+import 'package:wordle/keyboard/text_key.dart';
 
 import 'backspace_key.dart';
 
@@ -96,7 +96,7 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
 
   Expanded buildRowThree() {
     return Expanded(
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).orientation == Orientation.portrait ? 
                 MediaQuery.of(context).size.width : MediaQuery.of(context).size.width*0.5,
         child: Row(
