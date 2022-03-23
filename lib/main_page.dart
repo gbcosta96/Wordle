@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wordle/models/game.dart';
+import 'package:wordle/models/guess.dart';
 import 'package:wordle/repository/data_repository.dart';
 import 'package:wordle/widgets/app_icon.dart';
 import 'package:wordle/constants/app_colors.dart';
@@ -25,14 +26,16 @@ class MainPageState extends State<MainPage> {
   late List<List<List<Tile>>> grid;
   late List<Iterable<Tile>> flattenedGrid = [];
   late List<String> wrongs = [];
+  late List<String> rights = [];
   late String guess = '';
   late String word;
   int currentLine = 0;
   bool over = false;
   late List<String> lstStr;
   String gameId = "6TfrtZAHSH6qp1jljkr3";
-  String name = "gbcosta96";
+  String name = "mormob";
   late Game game;
+  List<List<Widget>> stackItems = [];
 
   final DataRepository repository = DataRepository();
 
@@ -55,8 +58,9 @@ class MainPageState extends State<MainPage> {
   void asyncInit() async{
     String fileText = await _read();
     lstStr = fileText.split('\n');
-    
-    resetWord(false);
+    final stream = await repository.getDocument(gameId);
+    game = Game.fromSnapshot(stream);
+    resetWord(game.players.indexWhere((element) => element.name == name) == 1);
   }
 
   void resetWord(bool database) async {
@@ -64,6 +68,7 @@ class MainPageState extends State<MainPage> {
     currentLine = 0;
     guess = '';
     wrongs = [];
+    rights = [];
     over = false;
     final stream = await repository.getDocument(gameId);
     game = Game.fromSnapshot(stream);
@@ -72,6 +77,7 @@ class MainPageState extends State<MainPage> {
       game.word = word;
       game.players[0].guesses = null;
       game.players[1].guesses = null;
+      game.reset = true;
       repository.updateGame(game);
     }
 
@@ -91,10 +97,10 @@ class MainPageState extends State<MainPage> {
       guess += text;
       setState(() {
         for(var i = 0; i < wordLen; i++){
-          grid[0][currentLine][i].val = ' ';
+          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grid[0][currentLine][i].val = guess[i];
+          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].val = guess[i];
         }
       });
     }
@@ -105,10 +111,10 @@ class MainPageState extends State<MainPage> {
       guess = guess.substring(0, guess.length - 1);
       setState(() {
         for(var i = 0; i < wordLen; i++){
-          grid[0][currentLine][i].val = ' ';
+          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grid[0][currentLine][i].val = guess[i];
+          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].val = guess[i];
         }
       });
     }
@@ -154,24 +160,41 @@ class MainPageState extends State<MainPage> {
     
     for(var i = 0; i < _guess.length; i++){
       if(_guess[i] == _word[i]){
-        grid[0][currentLine][i].color = AppColors.letterRight;
+        grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.letterRight;
+        rights.add(_guess[i]);
         _word[i] = "#";
       }
     }
     for(var i = 0; i < _guess.length; i++){
-      if(grid[0][currentLine][i].color == AppColors.letterNeutral){
+      if(grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterNeutral){
         if(_word.contains(_guess[i])){
           _word.remove(_guess[i]);
-          grid[0][currentLine][i].color = AppColors.letterPlace;
+          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.letterPlace;
         }
         else{
-          grid[0][currentLine][i].color = AppColors.disableKeyColor;
+          grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.disableKeyColor;
           if(!word.contains(_guess[i])){ 
             wrongs.add(_guess[i]);
           }
         }
       }
     }
+    
+    List<String> res = [];
+    for(var i = 0; i < _guess.length; i++){
+      if(grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterRight) {
+        res.add("2");
+      } else if(grid[game.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterPlace) {
+        res.add("1");
+      } else {
+        res.add("0");
+      }
+    }
+    if(game.players[game.players.indexWhere((element) => element.name == name)].guesses == null){
+      game.players[game.players.indexWhere((element) => element.name == name)].guesses = [];
+    }
+    game.players[game.players.indexWhere((element) => element.name == name)].guesses?.add(Guess(word: guess, result: res.join('')));
+    repository.updateGame(game);
     setState(() { });
   }
 
@@ -210,6 +233,19 @@ class MainPageState extends State<MainPage> {
     );
   }
 
+  void updateStack(tileSize) {
+    stackItems = [];
+    for(var flatGrids in flattenedGrid)
+    {
+      if(flatGrids.isNotEmpty)
+      {
+        List<Widget> items = [];
+        items.addAll(flatGrids.map((e) => getTiles(e, tileSize)));
+        stackItems.add(items);
+      }
+    }   
+  }
+
   @override
   Widget build(BuildContext context) {
     double gridWidth = MediaQuery.of(context).size.width*0.47;
@@ -222,17 +258,8 @@ class MainPageState extends State<MainPage> {
       tileSize = (gridHeight - 1.5 * 2) / 7;
       gridWidth = tileSize*wordLen + 3;
     }
-    List<List<Widget>> stackItems = [];
-    for(var flatGrids in flattenedGrid)
-    {
-      if(flatGrids.isNotEmpty)
-      {
-        List<Widget> items = [];
-        items.addAll(flatGrids.map((e) => getTiles(e, tileSize)));
-        stackItems.add(items);
-      }
-    }
-    
+    updateStack(tileSize);
+     
   
     return RawKeyboardListener(
       autofocus: true,
@@ -257,6 +284,7 @@ class MainPageState extends State<MainPage> {
         backgroundColor: AppColors.backColor,
         bottomNavigationBar: CustomKeyboard(
           wrongs: wrongs,
+          rights: rights,
           onTextInput: (myText) {
             _insertText(myText);
           },
@@ -279,8 +307,8 @@ class MainPageState extends State<MainPage> {
                 height: MediaQuery.of(context).size.height*0.05,
                 child: Row(
                   children: [
-                    AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(false)),
-                    const SizedBox(width: 10),
+                    game.players.indexWhere((element) => element.name == name) == 0 ? AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(false)) : const SizedBox(),
+                    game.players.indexWhere((element) => element.name == name) == 0 ? const SizedBox(width: 10) : const SizedBox(),
                     AppIcon(iconData: Icons.book, onTap: () => {}),
                     const SizedBox(width: 10),
                     AppIcon(iconData: Icons.share, onTap: () => {})
@@ -296,6 +324,23 @@ class MainPageState extends State<MainPage> {
                       stream: repository.getDocumentSnap(gameId),
                       builder: (context, snapshot) {
                         game = Game.fromSnapshot(snapshot.data!);
+                        print(game.players.indexWhere((element) => element.name == name));
+                        if(snapshot.hasData && game.players.indexWhere((element) => element.name == name) == 1 && game.reset == true)
+                        {
+                          resetWord(true);
+                          game.reset = false;
+                          repository.updateGame(game);
+                        }
+                        if(game.players.firstWhere((element) => element.name != name).guesses != null) {
+                          for(int i = 0; i < game.players.firstWhere((element) => element.name != name).guesses!.length; i++) {
+                            for(int j = 0; j < wordLen; j++) {
+                              String _res = game.players.firstWhere((element) => element.name != name).guesses![i].result[j];
+                              grid[game.players.indexWhere((element) => element.name != name)][i][j].color = _res == "2" ? AppColors.letterRight : _res ==  "1" ? AppColors.letterPlace : AppColors.disableKeyColor;
+                            }
+                          }
+                          updateStack(tileSize);
+                        }                    
+
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [

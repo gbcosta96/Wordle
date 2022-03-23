@@ -8,8 +8,10 @@ class TextKey extends StatelessWidget {
     required this.onTextInput,
     this.flex = 1,
     this.wrong = false,
+    this.right = false,
   }) : super(key: key);
   final bool wrong;
+  final bool right;
   final String text;
   final ValueSetter<String> onTextInput;
   final int flex;
@@ -20,12 +22,10 @@ class TextKey extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(2.0),
         child: Material(
-          color: wrong ? AppColors.disableKeyColor : AppColors.keysColor,
+          color: wrong ? AppColors.disableKeyColor : right ? AppColors.letterRight : AppColors.keysColor,
           child: InkWell(
             onTap: () {
-              if(!wrong){
                 onTextInput.call(text);
-              }
             },
             child: Center(
               child: Text(

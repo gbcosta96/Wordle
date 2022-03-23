@@ -9,11 +9,13 @@ class CustomKeyboard extends StatefulWidget {
   const CustomKeyboard({
     Key? key,
     required this.wrongs,
+    required this.rights,
     required this.onTextInput,
     required this.onBackspace,
     required this.onSubmit
   }) : super(key: key);
   final List<String> wrongs;
+  final List<String> rights;
   final ValueSetter<String> onTextInput;
   final VoidCallback onBackspace;
   final VoidCallback onSubmit;
@@ -61,6 +63,7 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
               text: letter,
               onTextInput: _textInputHandler,
               wrong: widget.wrongs.contains(letter),
+              right: widget.rights.contains(letter),
             ),
           ],
         ),
@@ -80,6 +83,7 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
               text: letter,
               onTextInput: _textInputHandler,
               wrong: widget.wrongs.contains(letter),
+              right: widget.rights.contains(letter),
             ),
             BackspaceKey(
               onBackspace: _backspaceHandler,
@@ -102,6 +106,7 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
               text: letter,
               onTextInput: _textInputHandler,
               wrong: widget.wrongs.contains(letter),
+              right: widget.rights.contains(letter),
             ),
             SubmitKey(
               flex: 3,

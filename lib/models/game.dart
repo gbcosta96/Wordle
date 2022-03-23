@@ -4,9 +4,10 @@ import 'package:wordle/models/player.dart';
 class Game {
   List<Player> players;
   String word;
+  bool reset;
   String? referenceId;
   
-  Game({required this.players, required this.word, this.referenceId});
+  Game({required this.players, required this.word, this.referenceId, required this.reset});
 
   factory Game.fromSnapshot(DocumentSnapshot snapshot) {
     final newGame = Game.fromJson(snapshot.data() as Map<String, dynamic>);
@@ -25,7 +26,8 @@ class Game {
 Game _gameFromJson(Map<String, dynamic> json) {
   return Game(
     word: json['word'] as String,
-    players: _convertPlayers(json['players'] as List<dynamic>)
+    players: _convertPlayers(json['players'] as List<dynamic>),
+    reset: json['reset'],
   );
 }
 
@@ -42,6 +44,7 @@ List<Player> _convertPlayers(List<dynamic> playerMap) {
   return <String, dynamic> {
     'players': _playerList(instance.players),
     'word': instance.word,
+    'reset': instance.reset,
   };
 }
 
