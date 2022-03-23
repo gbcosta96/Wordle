@@ -8,7 +8,7 @@ import 'package:wordle/models/guess.dart';
 import 'package:wordle/repository/data_repository.dart';
 import 'package:wordle/widgets/app_icon.dart';
 import 'package:wordle/constants/app_colors.dart';
-import 'package:wordle/keyboard/custom_keyboard.dart';
+import 'package:wordle/widgets/keyboard/custom_keyboard.dart';
 import 'package:wordle/models/tile.dart';
 import 'package:wordle/widgets/word_grid.dart';
 
