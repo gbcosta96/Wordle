@@ -1,12 +1,15 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wordle/app_icon.dart';
+import 'package:wordle/models/game.dart';
+import 'package:wordle/repository/data_repository.dart';
+import 'package:wordle/widgets/app_icon.dart';
 import 'package:wordle/constants/app_colors.dart';
-import 'package:wordle/custom_keyboard.dart';
-import 'package:wordle/tile.dart';
-import 'package:wordle/word_grid.dart';
+import 'package:wordle/keyboard/custom_keyboard.dart';
+import 'package:wordle/models/tile.dart';
+import 'package:wordle/widgets/word_grid.dart';
 
 
 class MainPage extends StatefulWidget {
@@ -27,6 +30,11 @@ class MainPageState extends State<MainPage> {
   int currentLine = 0;
   bool over = false;
   late List<String> lstStr;
+  String gameId = "6TfrtZAHSH6qp1jljkr3";
+  String name = "gbcosta96";
+  late Game game;
+
+  final DataRepository repository = DataRepository();
 
   Future<String> _read() async {
     String text = '';
@@ -46,13 +54,27 @@ class MainPageState extends State<MainPage> {
 
   void asyncInit() async{
     String fileText = await _read();
+    lstStr = fileText.split('\n');
+    
+    resetWord(false);
+  }
+
+  void resetWord(bool database) async {
     Random rdm = Random();
     currentLine = 0;
     guess = '';
     wrongs = [];
     over = false;
-    lstStr = fileText.split('\n');
-    word = lstStr[rdm.nextInt(lstStr.length)].trim();
+    final stream = await repository.getDocument(gameId);
+    game = Game.fromSnapshot(stream);
+    word = database ? game.word : lstStr[rdm.nextInt(lstStr.length)].trim();
+    if(!database){
+      game.word = word;
+      game.players[0].guesses = null;
+      game.players[1].guesses = null;
+      repository.updateGame(game);
+    }
+
     setState(() {
       wordLen = word.length;
       grid = List.generate(2, (player) => List.generate(7, (y) => List.generate(wordLen, (x) => Tile(x, y, " ", AppColors.letterNeutral))));
@@ -257,7 +279,7 @@ class MainPageState extends State<MainPage> {
                 height: MediaQuery.of(context).size.height*0.05,
                 child: Row(
                   children: [
-                    AppIcon(iconData: Icons.replay_outlined, onTap: () => asyncInit()),
+                    AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(false)),
                     const SizedBox(width: 10),
                     AppIcon(iconData: Icons.book, onTap: () => {}),
                     const SizedBox(width: 10),
@@ -270,22 +292,30 @@ class MainPageState extends State<MainPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        WordGrid(
-                          gridWidth: gridWidth,
-                          gridHeight: gridHeight,
-                          playerName: "Player 1",
-                          stackItems: stackItems[0],
-                        ),
-                        WordGrid(
-                          gridWidth: gridWidth,
-                          gridHeight: gridHeight,
-                          playerName: "Player 2",
-                          stackItems: stackItems[1]
-                        ),
-                      ],
+                    StreamBuilder<DocumentSnapshot>(
+                      stream: repository.getDocumentSnap(gameId),
+                      builder: (context, snapshot) {
+                        game = Game.fromSnapshot(snapshot.data!);
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            WordGrid(
+                              gridWidth: gridWidth,
+                              gridHeight: gridHeight,
+                              playerName: snapshot.hasData ? game.players[0].name : "Waiting...",
+                              stackItems: stackItems[0],
+                              iconColor: snapshot.hasData ? AppColors.letterRight : AppColors.disableKeyColor,
+                            ),
+                            WordGrid(
+                              gridWidth: gridWidth,
+                              gridHeight: gridHeight,
+                              playerName: snapshot.hasData && game.players.length > 1 ? game.players[1].name : "Waiting...",
+                              stackItems: stackItems[1],
+                              iconColor: snapshot.hasData && game.players.length > 1 ? AppColors.letterRight : AppColors.disableKeyColor,
+                            ),
+                          ],
+                        );
+                      }
                     ),
                     over == true ?
                     SizedBox(
@@ -297,7 +327,7 @@ class MainPageState extends State<MainPage> {
                           fontWeight: FontWeight.bold
                         ),
                       ),
-                    ) : SizedBox(height: MediaQuery.of(context).size.height*0.02),            
+                    ) : SizedBox(height: MediaQuery.of(context).size.height*0.02),
                   ],
                 ),
               ),

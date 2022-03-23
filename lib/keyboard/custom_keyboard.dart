@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wordle/constants/app_colors.dart';
-import 'package:wordle/submit_key.dart';
-import 'package:wordle/textKey.dart';
+import 'package:wordle/keyboard/submit_key.dart';
+import 'package:wordle/keyboard/textKey.dart';
 
 import 'backspace_key.dart';
 
