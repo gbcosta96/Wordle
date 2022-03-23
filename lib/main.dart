@@ -2,10 +2,23 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:wordle/main_page.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  if(kIsWeb) {
+    await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyCtce2OebRZDk6cE-XsOPsXMpcJgMw7gFQ",
+      appId: "1:707137472833:web:d8b3056eec3933835639c0",
+      messagingSenderId: "707137472833",
+      projectId: "wordvsword-ba8ef"
+    ),
+  );
+  } else {
+    await Firebase.initializeApp();
+  }
+  
   runApp(const MyApp());
 }
 
