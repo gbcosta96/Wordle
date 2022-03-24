@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wordle/utils/dimensions.dart';
 import 'package:wordle/widgets/app_icon.dart';
-import 'package:wordle/constants/app_colors.dart';
+import 'package:wordle/utils/app_colors.dart';
 
 class WordGrid extends StatelessWidget {
   final double gridWidth;
@@ -20,25 +21,28 @@ class WordGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          children: [
-            AppIcon(iconData: Icons.person, onTap: () => {}, iconColor: iconColor),
-            const SizedBox(width: 5),
-            Text(playerName,
-              style: const TextStyle(
-                fontSize: 18,
-                color: Colors.white,
-              ),
-            )
-          ],
+        Container(
+          height: Dimensions.height(Dimensions.playerHeight),
+          padding: const EdgeInsets.all(Dimensions.playerPadding),
+          child: Row(
+            children: [
+              AppIcon(iconData: Icons.person, onTap: () => {}, iconColor: iconColor),
+              const SizedBox(width: 5),
+              Text(playerName,
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              )
+            ],
+          ),
         ),
         Container(
-          margin: const EdgeInsets.only(top: 5),
           width: gridWidth,
           height: gridHeight,
-          padding: const EdgeInsets.all(1.5),
+          padding: const EdgeInsets.all(Dimensions.gridPadding),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: BorderRadius.circular(Dimensions.gridRadius),
           ),
           child: Stack(
               children: stackItems,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wordle/constants/app_colors.dart';
+import 'package:wordle/utils/app_colors.dart';
+import 'package:wordle/utils/dimensions.dart';
 
 class AppIcon extends StatelessWidget {
   final IconData iconData;
@@ -13,10 +14,10 @@ class AppIcon extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.of(context).size.height*0.05,
-        height: MediaQuery.of(context).size.height*0.05,
+        width: Dimensions.height(Dimensions.appIconSize),
+        height: Dimensions.height(Dimensions.appIconSize),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(MediaQuery.of(context).size.height*0.025),
+          borderRadius: BorderRadius.circular(Dimensions.height(Dimensions.appIconSize)/2),
           color: iconColor,
         ),
         child: Icon(

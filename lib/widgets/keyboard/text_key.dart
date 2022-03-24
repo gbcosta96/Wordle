@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wordle/constants/app_colors.dart';
+import 'package:wordle/utils/app_colors.dart';
 
 class TextKey extends StatelessWidget {
   const TextKey({

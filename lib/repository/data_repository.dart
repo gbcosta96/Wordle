@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 
 import '../models/game.dart';
 
@@ -10,19 +11,25 @@ class DataRepository {
     return collection.doc(id).snapshots();
   }
 
-  Future<DocumentSnapshot> getDocument(String id) {
-    return collection.doc(id).get();
+  Future<Game> getGame(String id) {
+    return collection.doc(id).get().then((value) => Game.fromSnapshot(value));
   }
 
   Future<DocumentReference> addGame(Game game) {
     return collection.add(game.toJson());
   }
 
-  void updateGame(Game game) async {
+  Future<void> updateGame(Game game) async {
     await collection.doc(game.referenceId).update(game.toJson());
   }
 
   void deleteGame(Game game) async {
     await collection.doc(game.referenceId).delete();
   }
+
+  Future<List<String>> loadPossibleWords() async {
+    String text = await rootBundle.loadString('assets/words.txt');
+    return text.split('\n');
+  }
+
 }

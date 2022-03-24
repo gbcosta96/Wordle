@@ -6,8 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:wordle/models/game.dart';
 import 'package:wordle/models/guess.dart';
 import 'package:wordle/repository/data_repository.dart';
+import 'package:wordle/utils/app_colors.dart';
+import 'package:wordle/utils/dimensions.dart';
 import 'package:wordle/widgets/app_icon.dart';
-import 'package:wordle/constants/app_colors.dart';
 import 'package:wordle/widgets/keyboard/custom_keyboard.dart';
 import 'package:wordle/models/tile.dart';
 import 'package:wordle/widgets/word_grid.dart';
@@ -21,29 +22,28 @@ class MainPage extends StatefulWidget {
 
 
 class MainPageState extends State<MainPage> {
-  int wordLen = 0;
-  FocusNode myFocusNode = FocusNode();
-  late List<List<List<Tile>>> grid;
-  late List<Iterable<Tile>> flattenedGrid = [];
-  late List<String> wrongs = [];
-  late List<String> rights = [];
-  late String guess = '';
-  late String word;
-  int currentLine = 0;
-  bool over = false;
-  late List<String> lstStr;
-  String gameId = "6TfrtZAHSH6qp1jljkr3";
-  String name = "gbcosta96";
-  Game? game;
-  List<List<Widget>> stackItems = [];
-
+  final int kPlayers = 2;
+  final FocusNode myFocusNode = FocusNode();
   final DataRepository repository = DataRepository();
 
-  Future<String> _read() async {
-    String text = '';
-    text = await rootBundle.loadString('assets/words.txt');
-    return text;
-  }
+  double? gridWidth, gridHeight, tileSize;
+
+  List<String> wrongLetters = [];
+  List<String> rightLetters = [];
+
+  List<List<List<Tile>>> grids = [];
+  List<Iterable<Tile>> flattenedGrids = [];
+  List<List<Widget>> tiles = [];
+  Game? game;
+
+  late List<String> possibleWords;
+  late String guess;
+  
+  bool over = false;
+  
+  String gameId = "6TfrtZAHSH6qp1jljkr3";
+  String name = "gbcosta96";
+
   
   @override
   void initState() {
@@ -52,51 +52,55 @@ class MainPageState extends State<MainPage> {
   }
 
   void asyncInit() async{
-    String fileText = await _read();
-    lstStr = fileText.split('\n');
-    final stream = await repository.getDocument(gameId);
-    game = Game.fromSnapshot(stream);
-    resetWord(game!.players.indexWhere((element) => element.name == name) == 1);
+    possibleWords = await repository.loadPossibleWords();
+    game = await repository.getGame(gameId);
+    resetWord(false);
   }
 
-  void resetWord(bool database) async {
-    Random rdm = Random();
-    currentLine = 0;
-    guess = '';
-    wrongs = [];
-    rights = [];
+  void resetWord(bool newWord) async {
+    
     over = false;
-    final stream = await repository.getDocument(gameId);
-    game = Game.fromSnapshot(stream);
-    word = database ? game!.word : lstStr[rdm.nextInt(lstStr.length)].trim();
-    if(!database){
-      game!.word = word;
+
+    rightLetters = [];
+    wrongLetters = [];
+
+    guess = '';
+    game = await repository.getGame(gameId);
+
+    if(newWord){
+      Random rdm = Random();
+      game!.word = possibleWords[rdm.nextInt(possibleWords.length)].trim();
       game!.players[0].guesses = null;
       game!.players[1].guesses = null;
       game!.reset = true;
-      repository.updateGame(game!);
+      await repository.updateGame(game!);
+    }
+        
+    grids = List.generate(kPlayers, (player) =>
+            List.generate(game!.word.length + 2, (y) =>
+              List.generate(game!.word.length, (x) =>
+                Tile(x, y, " ", AppColors.letterNeutral)
+              )
+            )
+          );
+          
+    flattenedGrids = [];
+    for(var _grid in grids){
+      flattenedGrids.add(_grid.expand((e) => e));
     }
 
-    setState(() {
-      wordLen = word.length;
-      grid = List.generate(2, (player) => List.generate(7, (y) => List.generate(wordLen, (x) => Tile(x, y, " ", AppColors.letterNeutral))));
-      flattenedGrid = [];
-      for(var playersGrid in grid){
-        flattenedGrid.add(playersGrid.expand((e) => e));
-      }
-    });
-    
+    setState(() {});
   }
 
   void _insertText(String text){
-    if(guess.length < wordLen && over == false){
+    if(guess.length < game!.word.length && over == false){
       guess += text;
       setState(() {
-        for(var i = 0; i < wordLen; i++){
-          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].val = ' ';
+        for(var i = 0; i < game!.word.length; i++){
+          grids[game!.playerPos(name)][game!.players[game!.playerPos(name)].guesses?.length ?? 0][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].val = guess[i];
+          grids[game!.playerPos(name)][game!.players[game!.playerPos(name)].guesses?.length ?? 0][i].val = guess[i];
         }
       });
     }
@@ -106,29 +110,21 @@ class MainPageState extends State<MainPage> {
     if(guess.isNotEmpty){
       guess = guess.substring(0, guess.length - 1);
       setState(() {
-        for(var i = 0; i < wordLen; i++){
-          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].val = ' ';
+        for(var i = 0; i < game!.word.length; i++){
+          grids[game!.playerPos(name)][game!.players[game!.playerPos(name)].guesses?.length ?? 0][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].val = guess[i];
+          grids[game!.playerPos(name)][game!.players[game!.playerPos(name)].guesses?.length ?? 0][i].val = guess[i];
         }
       });
     }
   }
 
   void _submit(){
-    if(guess.length == wordLen){
-      bool checkPossible = false;
-      for(String possibleWords in lstStr){
-        if(possibleWords.trim() == guess){
-          checkPossible = true;
-          break;
-        }
-      }
-      if(checkPossible == true){
+    if(guess.length == game!.word.length){
+      if(possibleWords.indexWhere((element) => element.trim() == guess) >= 0) {
         _verifyWord();
-        if(currentLine < 6){
-          currentLine++;
+        if((game!.players[game!.playerPos(name)].guesses?.length ?? 0) < (game!.word.length + 2)){
           guess = '';
         }
         else{
@@ -147,54 +143,42 @@ class MainPageState extends State<MainPage> {
   }
 
   void _verifyWord(){
-    if(guess == word){
+    if(guess == game!.word){
       over = true;
     }
 
     List<String> _guess = guess.split('');
-    List<String> _word = word.split('');
+    List<String> _word = game!.word.split('');
+    List<String> _result = List.generate(game!.word.length, (index) => '0');
     
     for(var i = 0; i < _guess.length; i++){
       if(_guess[i] == _word[i]){
-        grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.letterRight;
-        rights.add(_guess[i]);
+        rightLetters.add(_guess[i]);
         _word[i] = "#";
+        _result[i] = "2";
       }
     }
     for(var i = 0; i < _guess.length; i++){
-      if(grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterNeutral){
+      if(_result[i] == "0"){
         if(_word.contains(_guess[i])){
           _word.remove(_guess[i]);
-          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.letterPlace;
+          _result[i] = "1";
         }
         else{
-          grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color = AppColors.disableKeyColor;
-          if(!word.contains(_guess[i])){ 
-            wrongs.add(_guess[i]);
-          }
+            wrongLetters.add(_guess[i]);
         }
       }
     }
     
-    List<String> res = [];
-    for(var i = 0; i < _guess.length; i++){
-      if(grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterRight) {
-        res.add("2");
-      } else if(grid[game!.players.indexWhere((element) => element.name == name)][currentLine][i].color == AppColors.letterPlace) {
-        res.add("1");
-      } else {
-        res.add("0");
-      }
+    if(game!.players[game!.playerPos(name)].guesses == null){
+      game!.players[game!.playerPos(name)].guesses = [];
     }
-    if(game!.players[game!.players.indexWhere((element) => element.name == name)].guesses == null){
-      game!.players[game!.players.indexWhere((element) => element.name == name)].guesses = [];
-    }
-    game!.players[game!.players.indexWhere((element) => element.name == name)].guesses?.add(Guess(word: guess, result: res.join('')));
+    game!.players[game!.playerPos(name)].guesses?.add(Guess(word: guess, result: _result.join('')));
     repository.updateGame(game!);
     setState(() { });
   }
 
-  Widget getTiles(Tile e, double tileSize) {
+  Widget widgetTile(Tile e, double tileSize) {
     return Positioned(
       left: e.x * tileSize,
       top: e.y * tileSize,
@@ -229,33 +213,35 @@ class MainPageState extends State<MainPage> {
     );
   }
 
-  void updateStack(tileSize) {
-    stackItems = [];
-    for(var flatGrids in flattenedGrid)
-    {
-      if(flatGrids.isNotEmpty)
-      {
-        List<Widget> items = [];
-        items.addAll(flatGrids.map((e) => getTiles(e, tileSize)));
-        stackItems.add(items);
+  void updateTiles() {
+    tiles = [];
+    if(game != null) {
+      gridWidth = Dimensions.width(Dimensions.gridMaxWidth);
+      tileSize = (gridWidth! - Dimensions.gridPadding * 2) / game!.word.length;
+      gridHeight = tileSize!*(game!.word.length + 2) + (Dimensions.gridPadding * 2);
+
+      if(gridHeight! >= Dimensions.height(Dimensions.gridMaxHeight)) {
+        gridHeight = Dimensions.height(Dimensions.gridMaxHeight);
+        tileSize = (gridHeight! - Dimensions.gridPadding * 2) / (game!.word.length + 2);
+        gridWidth = tileSize!*game!.word.length + (Dimensions.gridPadding * 2);
       }
-    }   
+    
+      for(var _flatGrid in flattenedGrids)
+      {
+        if(_flatGrid.isNotEmpty)
+        {
+          List<Widget> items = [];
+          items.addAll(_flatGrid.map((e) => widgetTile(e, tileSize!)));
+          tiles.add(items);
+        }
+      }  
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    double gridWidth = MediaQuery.of(context).size.width*0.47;
-    double tileSize = (gridWidth - 1.5 * 2) / wordLen;
-    double gridHeight = tileSize*7 + 3;
-
-    if(gridHeight >= MediaQuery.of(context).size.height*0.60) {
-      gridHeight = MediaQuery.of(context).size.height*0.60;
-      tileSize = (gridHeight - 1.5 * 2) / 7;
-      gridWidth = tileSize*wordLen + 3;
-    }
-    updateStack(tileSize);
-     
-  
+    updateTiles();
+    
     return RawKeyboardListener(
       autofocus: true,
       focusNode: FocusNode(),
@@ -278,8 +264,8 @@ class MainPageState extends State<MainPage> {
       child: Scaffold(
         backgroundColor: AppColors.backColor,
         bottomNavigationBar: CustomKeyboard(
-          wrongs: wrongs,
-          rights: rights,
+          wrongs: wrongLetters,
+          rights: rightLetters,
           onTextInput: (myText) {
             _insertText(myText);
           },
@@ -295,17 +281,18 @@ class MainPageState extends State<MainPage> {
             children: [
               Container(
                 margin: EdgeInsets.only(
-                  top: MediaQuery.of(context).size.height*0.05,
-                  left: MediaQuery.of(context).size.width*0.05,
-                  right :MediaQuery.of(context).size.width*0.05,
+                  top: Dimensions.height(Dimensions.headerMarginHeight),
+                  bottom: Dimensions.height(Dimensions.headerMarginHeight),
+                  left: Dimensions.width(Dimensions.headerMarginWidth),
+                  right : Dimensions.width(Dimensions.headerMarginWidth),
                 ),
-                height: MediaQuery.of(context).size.height*0.05,
+                height: Dimensions.height(Dimensions.headerHeight),
                 child: Row(
                   children: [
-                    game?.players.indexWhere((element) => element.name == name) == 0 ? AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(false)) : const SizedBox(),
-                    game?.players.indexWhere((element) => element.name == name) == 0 ? const SizedBox(width: 10) : const SizedBox(),
+                    game?.playerPos(name) == 0 ? AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(true)) : const SizedBox(),
+                    game?.playerPos(name) == 0 ? SizedBox(width: Dimensions.width(Dimensions.iconSeparatorWidth)) : const SizedBox(),
                     AppIcon(iconData: Icons.book, onTap: () => {}),
-                    const SizedBox(width: 10),
+                    SizedBox(width: Dimensions.width(Dimensions.iconSeparatorWidth)),
                     AppIcon(iconData: Icons.share, onTap: () => {})
                   ],
                 ),
@@ -320,41 +307,50 @@ class MainPageState extends State<MainPage> {
                       builder: (context, snapshot) {
                         if(snapshot.hasData) {
                           game = Game.fromSnapshot(snapshot.data!);
-                          if(game!.players.indexWhere((element) => element.name == name) == 1 && game!.reset == true)
+                          if(game!.playerPos(name) == 1 && game!.reset == true)
                           {
-                            resetWord(true);
+                            resetWord(false);
                             game!.reset = false;
                             repository.updateGame(game!);
                           }
-                          if(game!.players.firstWhere((element) => element.name != name).guesses != null) {
-                            for(int i = 0; i < game!.players.firstWhere((element) => element.name != name).guesses!.length; i++) {
-                              for(int j = 0; j < wordLen; j++) {
-                                String _res = game!.players.firstWhere((element) => element.name != name).guesses![i].result[j];
-                                grid[game!.players.indexWhere((element) => element.name != name)][i][j].color = _res == "2" ? AppColors.letterRight : _res ==  "1" ? AppColors.letterPlace : AppColors.disableKeyColor;
+                          for(int player = 0; player < kPlayers; player++) {
+                            if(game!.players[player].guesses != null) {
+                              for(int i = 0; i < game!.players[player].guesses!.length; i++) {
+                                for(int j = 0; j < game!.word.length; j++) {
+                                  String _res = game!.players[player].guesses![i].result[j];
+                                  if(grids.isNotEmpty) {
+                                    grids[player][i][j].color = _res == "2" ? AppColors.letterRight : _res ==  "1" ? AppColors.letterPlace : AppColors.disableKeyColor;
+                                    if(player == game!.playerPos(name)) {
+                                      grids[player][i][j].val = game!.players[player].guesses![i].word[j];
+                                    }
+                                  }
+                                  
+                                }
                               }
                             }
-                            updateStack(tileSize);
-                          } 
+                            updateTiles();
+                          }
                         }
 
-                        return Row(
+                        return game == null || gridHeight == null || gridWidth == null ? const CircularProgressIndicator() : 
+                          Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            stackItems.isNotEmpty ?
+                            tiles.isNotEmpty ?
                             WordGrid(
-                              gridWidth: gridWidth,
-                              gridHeight: gridHeight,
-                              playerName: snapshot.hasData ? game!.players[0].name : "Waiting...",
-                              stackItems: stackItems[0],
-                              iconColor: snapshot.hasData ? AppColors.letterRight : AppColors.disableKeyColor,
+                              gridWidth: gridWidth!,
+                              gridHeight: gridHeight!,
+                              playerName: game!.players[0].name,
+                              stackItems: tiles[0],
+                              iconColor: AppColors.letterRight,
                             ) : const SizedBox(),
-                            stackItems.length >= 2 ?
+                            tiles.length >= 2 ?
                             WordGrid(
-                              gridWidth: gridWidth,
-                              gridHeight: gridHeight,
-                              playerName: snapshot.hasData && game!.players.length > 1 ? game!.players[1].name : "Waiting...",
-                              stackItems: stackItems[1],
-                              iconColor: snapshot.hasData && game!.players.length > 1 ? AppColors.letterRight : AppColors.disableKeyColor,
+                              gridWidth: gridWidth!,
+                              gridHeight: gridHeight!,
+                              playerName: game!.players.length > 1 ? game!.players[1].name : "Waiting...",
+                              stackItems: tiles[1],
+                              iconColor: game!.players.length > 1 ? AppColors.letterRight : AppColors.disableKeyColor,
                             ) : const SizedBox(),
                           ],
                         );
@@ -364,7 +360,7 @@ class MainPageState extends State<MainPage> {
                     SizedBox(
                       height: MediaQuery.of(context).size.height*0.02,
                       child: Text(
-                        word,
+                        game!.word,
                         style: const TextStyle(
                           color: AppColors.letterColor,
                           fontWeight: FontWeight.bold

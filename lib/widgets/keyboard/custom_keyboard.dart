@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wordle/utils/dimensions.dart';
 import 'package:wordle/widgets/keyboard/submit_key.dart';
 import 'package:wordle/widgets/keyboard/text_key.dart';
 
@@ -35,11 +36,14 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height*0.27,
+      width: Dimensions.orientation == Orientation.portrait ? 
+        Dimensions.width(Dimensions.keyboardPortraitWidth) : 
+        Dimensions.width(Dimensions.keyboardLandscapeWidth),
+      height: Dimensions.height(Dimensions.keyboardHeight),
       padding: const EdgeInsets.only(
-        left: 6.0,
-        right: 6.0,
-        bottom: 3.0,
+        left: Dimensions.keyboardWidthPadding,
+        right: Dimensions.keyboardWidthPadding,
+        bottom: Dimensions.keyboardBottomPadding,
       ),
       child: Column(        // <-- Column
         children: [
@@ -54,8 +58,6 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   Expanded buildRowOne() {
     return Expanded(
       child: SizedBox(
-        width: MediaQuery.of(context).orientation == Orientation.portrait ? 
-                MediaQuery.of(context).size.width : MediaQuery.of(context).size.width*0.5,
         child: Row(
           children: [
             for (var letter in row1) 
@@ -74,8 +76,6 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   Expanded buildRowTwo() {
     return Expanded(
       child: SizedBox(
-        width: MediaQuery.of(context).orientation == Orientation.portrait ? 
-                MediaQuery.of(context).size.width : MediaQuery.of(context).size.width*0.5,
         child: Row(
           children: [
             for (var letter in row2) 
@@ -97,8 +97,6 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   Expanded buildRowThree() {
     return Expanded(
       child: SizedBox(
-        width: MediaQuery.of(context).orientation == Orientation.portrait ? 
-                MediaQuery.of(context).size.width : MediaQuery.of(context).size.width*0.5,
         child: Row(
           children: [
             for (var letter in row3) 

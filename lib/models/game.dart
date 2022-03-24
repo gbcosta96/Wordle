@@ -15,12 +15,18 @@ class Game {
     return newGame;
   }
   
-  
   factory Game.fromJson(Map<String, dynamic> json) =>
     _gameFromJson(json);
   
   Map<String, dynamic> toJson() => _gameToJson(this);
 
+  int playerPos(name) {
+    return players.indexWhere((element) => element.name == name);
+  }
+
+  int enemyPos(name) {
+    return players.indexWhere((element) => element.name != name);
+  }
 }
 
 Game _gameFromJson(Map<String, dynamic> json) {
