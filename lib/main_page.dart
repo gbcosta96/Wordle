@@ -42,7 +42,7 @@ class MainPageState extends State<MainPage> {
   bool over = false;
   
   String gameId = "6TfrtZAHSH6qp1jljkr3";
-  String name = "gbcosta96";
+  String name = "player2";
 
   
   @override

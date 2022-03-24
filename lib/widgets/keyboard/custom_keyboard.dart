@@ -36,9 +36,6 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: Dimensions.orientation == Orientation.portrait ? 
-        Dimensions.width(Dimensions.keyboardPortraitWidth) : 
-        Dimensions.width(Dimensions.keyboardLandscapeWidth),
       height: Dimensions.height(Dimensions.keyboardHeight),
       padding: const EdgeInsets.only(
         left: Dimensions.keyboardWidthPadding,
@@ -58,6 +55,9 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   Expanded buildRowOne() {
     return Expanded(
       child: SizedBox(
+        width: MediaQuery.of(context).orientation == Orientation.portrait ? 
+          Dimensions.width(Dimensions.keyboardPortraitWidth) : 
+          Dimensions.width(Dimensions.keyboardLandscapeWidth),
         child: Row(
           children: [
             for (var letter in row1) 
@@ -76,6 +76,9 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   Expanded buildRowTwo() {
     return Expanded(
       child: SizedBox(
+        width: MediaQuery.of(context).orientation == Orientation.portrait ? 
+          Dimensions.width(Dimensions.keyboardPortraitWidth) : 
+          Dimensions.width(Dimensions.keyboardLandscapeWidth),
         child: Row(
           children: [
             for (var letter in row2) 
@@ -97,6 +100,9 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   Expanded buildRowThree() {
     return Expanded(
       child: SizedBox(
+        width: MediaQuery.of(context).orientation == Orientation.portrait ? 
+          Dimensions.width(Dimensions.keyboardPortraitWidth) : 
+          Dimensions.width(Dimensions.keyboardLandscapeWidth),
         child: Row(
           children: [
             for (var letter in row3) 

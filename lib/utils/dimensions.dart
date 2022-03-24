@@ -14,11 +14,11 @@ class Dimensions{
   static const double appIconSize = 5.0; // %
 
 
-  static const double headerMarginHeight = 5.0; // %
+  static const double headerMarginHeight = 5.0; // % x2
   static const double headerHeight = 5.0; // %
-  static const double playerHeight = 10.0; // %
+  static const double playerHeight = 8.0; // %
   static const double gridMaxHeight = 50.0; // %
-  static const double keyboardHeight = 27.0; // %
+  static const double keyboardHeight = 25.0; // %
 
 
   static const double gridPadding = 1.5; // absolut
@@ -27,17 +27,13 @@ class Dimensions{
   static const double gridRadius = 5; // absolut
   static const double playerPadding= 5; // %
 
-  static final double _screenHeight = Get.context!.height;
-  static final double _screenWidth = Get.context!.width;
-
-  static final Orientation orientation = Get.context!.orientation;
 
   static double height(double height){
-    return _screenHeight*height/100;
+    return Get.context!.height*height/100.0;
   } 
 
   static double width(double width){
-    return _screenWidth*width/100;
+    return Get.context!.width*width/100.0;
   }
 
   static double smallest(double size){
