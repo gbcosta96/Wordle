@@ -42,7 +42,7 @@ class MainPageState extends State<MainPage> {
   bool over = false;
   
   String gameId = "6TfrtZAHSH6qp1jljkr3";
-  String name = "player2";
+  String name = "gbcosta96";
 
   
   @override
@@ -151,7 +151,7 @@ class MainPageState extends State<MainPage> {
     List<String> _word = game!.word.split('');
     List<String> _result = List.generate(game!.word.length, (index) => '0');
     
-    for(var i = 0; i < _guess.length; i++){
+    for(var i = 0; i < _guess.length; i++) {
       if(_guess[i] == _word[i]){
         rightLetters.add(_guess[i]);
         _word[i] = "#";
@@ -160,11 +160,11 @@ class MainPageState extends State<MainPage> {
     }
     for(var i = 0; i < _guess.length; i++){
       if(_result[i] == "0"){
-        if(_word.contains(_guess[i])){
+        if(_word.contains(_guess[i])) {
           _word.remove(_guess[i]);
           _result[i] = "1";
         }
-        else{
+        else if(!game!.word.contains(_guess[i])) {
             wrongLetters.add(_guess[i]);
         }
       }
