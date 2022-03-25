@@ -15,8 +15,8 @@ class DataRepository {
     return collection.doc(id).get().then((value) => Game.fromSnapshot(value));
   }
 
-  Future<DocumentReference> addGame(Game game) {
-    return collection.add(game.toJson());
+  Future<void> addGame(Game game, String id) {
+    return collection.doc(id).set(game.toJson());
   }
 
   Future<void> updateGame(Game game) async {
@@ -25,6 +25,10 @@ class DataRepository {
 
   void deleteGame(Game game) async {
     await collection.doc(game.referenceId).delete();
+  }
+
+  Future<bool> checkGame(String id) {
+    return collection.doc(id).get().then((value) => value.exists);
   }
 
   Future<List<String>> loadPossibleWords() async {

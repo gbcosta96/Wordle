@@ -4,10 +4,10 @@ import 'package:wordle/models/player.dart';
 class Game {
   List<Player> players;
   String word;
-  bool reset;
+  bool? reset;
   String? referenceId;
   
-  Game({required this.players, required this.word, this.referenceId, required this.reset});
+  Game({required this.players, required this.word, this.referenceId, this.reset});
 
   factory Game.fromSnapshot(DocumentSnapshot snapshot) {
     final newGame = Game.fromJson(snapshot.data() as Map<String, dynamic>);

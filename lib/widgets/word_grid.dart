@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wordle/utils/dimensions.dart';
 import 'package:wordle/widgets/app_icon.dart';
 import 'package:wordle/utils/app_colors.dart';
+import 'package:wordle/widgets/app_text.dart';
 
 class WordGrid extends StatelessWidget {
   final double gridWidth;
@@ -28,12 +29,7 @@ class WordGrid extends StatelessWidget {
             children: [
               AppIcon(iconData: Icons.person, onTap: () => {}, iconColor: iconColor),
               const SizedBox(width: 5),
-              Text(playerName,
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                ),
-              )
+              AppText(text: playerName)
             ],
           ),
         ),

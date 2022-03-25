@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 class Dimensions{
 
+  ////////////////////////////////////////////////////////////////////
   static const double gridMaxWidth = 47.0; // %
   static const double keyboardPortraitWidth = 100.0; // %
   static const double keyboardLandscapeWidth = 50.0; // %
@@ -24,6 +25,17 @@ class Dimensions{
   static const double keyboardBottomPadding = 3; // absolut
   static const double gridRadius = 5; // absolut
   static const double playerPadding= 5; // %
+  ///////////////////////////////////////////////////////////////////
+  
+  static const double loginWidth = 70.0; // %
+  static const double loginLandscapingWidth = 50.0; // %
+  static const double loginSpacingHeight = 5.0; // %
+  static const double inputPaddingHeight = 3.0; // %
+  static const double inputPrefixWidth = 10.0; // %
+  static const double inputHeight = 12.0; // %
+  static const double buttonPaddingHeight = 10.0;
+
+  static const double fontSize = 20;
 
 
   static double height(double height){

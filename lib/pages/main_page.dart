@@ -9,13 +9,17 @@ import 'package:wordle/repository/data_repository.dart';
 import 'package:wordle/utils/app_colors.dart';
 import 'package:wordle/utils/dimensions.dart';
 import 'package:wordle/widgets/app_icon.dart';
+import 'package:wordle/widgets/app_text.dart';
 import 'package:wordle/widgets/keyboard/custom_keyboard.dart';
 import 'package:wordle/models/tile.dart';
 import 'package:wordle/widgets/word_grid.dart';
 
 
 class MainPage extends StatefulWidget {
-  const MainPage({Key? key}) : super(key: key);
+  final String roomId;
+  final String playerName;
+  final bool newWord;
+  const MainPage({Key? key, required this.roomId, required this.newWord, required this.playerName}) : super(key: key);
   @override
   MainPageState createState() => MainPageState();
 }
@@ -41,9 +45,6 @@ class MainPageState extends State<MainPage> {
   
   bool over = false;
   
-  String gameId = "6TfrtZAHSH6qp1jljkr3";
-  String name = "player2";
-
   
   @override
   void initState() {
@@ -53,8 +54,8 @@ class MainPageState extends State<MainPage> {
 
   void asyncInit() async{
     possibleWords = await repository.loadPossibleWords();
-    game = await repository.getGame(gameId);
-    resetWord(false);
+    game = await repository.getGame(widget.roomId);
+    resetWord(widget.newWord);
   }
 
   void resetWord(bool newWord) async {
@@ -65,13 +66,16 @@ class MainPageState extends State<MainPage> {
     wrongLetters = [];
 
     guess = '';
-    game = await repository.getGame(gameId);
+    game = await repository.getGame(widget.roomId);
 
     if(newWord){
       Random rdm = Random();
       game!.word = possibleWords[rdm.nextInt(possibleWords.length)].trim();
       game!.players[0].guesses = null;
-      game!.players[1].guesses = null;
+      try {
+        game!.players[1].guesses = null;
+      }catch(e){}
+      
       game!.reset = true;
       await repository.updateGame(game!);
     }
@@ -97,10 +101,10 @@ class MainPageState extends State<MainPage> {
       guess += text;
       setState(() {
         for(var i = 0; i < game!.word.length; i++){
-          grids[game!.playerPos(name)][game!.players[game!.playerPos(name)].guesses?.length ?? 0][i].val = ' ';
+          grids[game!.playerPos(widget.playerName)][game!.players[game!.playerPos(widget.playerName)].guesses?.length ?? 0][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grids[game!.playerPos(name)][game!.players[game!.playerPos(name)].guesses?.length ?? 0][i].val = guess[i];
+          grids[game!.playerPos(widget.playerName)][game!.players[game!.playerPos(widget.playerName)].guesses?.length ?? 0][i].val = guess[i];
         }
       });
     }
@@ -111,10 +115,10 @@ class MainPageState extends State<MainPage> {
       guess = guess.substring(0, guess.length - 1);
       setState(() {
         for(var i = 0; i < game!.word.length; i++){
-          grids[game!.playerPos(name)][game!.players[game!.playerPos(name)].guesses?.length ?? 0][i].val = ' ';
+          grids[game!.playerPos(widget.playerName)][game!.players[game!.playerPos(widget.playerName)].guesses?.length ?? 0][i].val = ' ';
         }
         for(var i = 0; i < guess.length; i++){
-          grids[game!.playerPos(name)][game!.players[game!.playerPos(name)].guesses?.length ?? 0][i].val = guess[i];
+          grids[game!.playerPos(widget.playerName)][game!.players[game!.playerPos(widget.playerName)].guesses?.length ?? 0][i].val = guess[i];
         }
       });
     }
@@ -124,7 +128,7 @@ class MainPageState extends State<MainPage> {
     if(guess.length == game!.word.length){
       if(possibleWords.indexWhere((element) => element.trim() == guess) >= 0) {
         _verifyWord();
-        if((game!.players[game!.playerPos(name)].guesses?.length ?? 0) < (game!.word.length + 2)){
+        if((game!.players[game!.playerPos(widget.playerName)].guesses?.length ?? 0) < (game!.word.length + 2)){
           guess = '';
         }
         else{
@@ -170,10 +174,10 @@ class MainPageState extends State<MainPage> {
       }
     }
     
-    if(game!.players[game!.playerPos(name)].guesses == null){
-      game!.players[game!.playerPos(name)].guesses = [];
+    if(game!.players[game!.playerPos(widget.playerName)].guesses == null){
+      game!.players[game!.playerPos(widget.playerName)].guesses = [];
     }
-    game!.players[game!.playerPos(name)].guesses?.add(Guess(word: guess, result: _result.join('')));
+    game!.players[game!.playerPos(widget.playerName)].guesses?.add(Guess(word: guess, result: _result.join('')));
     repository.updateGame(game!);
     setState(() { });
   }
@@ -197,14 +201,7 @@ class MainPageState extends State<MainPage> {
             child: Center(
               child: FittedBox(
                 fit: BoxFit.fitHeight,
-                child: Text(
-                  e.val,
-                  style: const TextStyle(
-                    color: AppColors.letterColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 50,
-                  ),
-                ),
+                child: AppText(text: e.val, size: 50),
               ),
             ),
           ),
@@ -289,8 +286,8 @@ class MainPageState extends State<MainPage> {
                 height: Dimensions.height(Dimensions.headerHeight),
                 child: Row(
                   children: [
-                    game?.playerPos(name) == 0 ? AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(true)) : const SizedBox(),
-                    game?.playerPos(name) == 0 ? SizedBox(width: Dimensions.width(Dimensions.iconSeparatorWidth)) : const SizedBox(),
+                    game?.playerPos(widget.playerName) == 0 ? AppIcon(iconData: Icons.replay_outlined, onTap: () => resetWord(true)) : const SizedBox(),
+                    game?.playerPos(widget.playerName) == 0 ? SizedBox(width: Dimensions.width(Dimensions.iconSeparatorWidth)) : const SizedBox(),
                     AppIcon(iconData: Icons.book, onTap: () => {}),
                     SizedBox(width: Dimensions.width(Dimensions.iconSeparatorWidth)),
                     AppIcon(iconData: Icons.share, onTap: () => {})
@@ -303,24 +300,24 @@ class MainPageState extends State<MainPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     StreamBuilder<DocumentSnapshot>(
-                      stream: repository.getDocumentSnap(gameId),
+                      stream: repository.getDocumentSnap(widget.roomId),
                       builder: (context, snapshot) {
                         if(snapshot.hasData) {
                           game = Game.fromSnapshot(snapshot.data!);
-                          if(game!.playerPos(name) == 1 && game!.reset == true)
+                          if(game!.playerPos(widget.playerName) == 1 && game!.reset == true)
                           {
                             resetWord(false);
                             game!.reset = false;
                             repository.updateGame(game!);
                           }
-                          for(int player = 0; player < kPlayers; player++) {
+                          for(int player = 0; player < game!.players.length; player++) {
                             if(game!.players[player].guesses != null) {
                               for(int i = 0; i < game!.players[player].guesses!.length; i++) {
                                 for(int j = 0; j < game!.word.length; j++) {
                                   String _res = game!.players[player].guesses![i].result[j];
                                   if(grids.isNotEmpty) {
                                     grids[player][i][j].color = _res == "2" ? AppColors.letterRight : _res ==  "1" ? AppColors.letterPlace : AppColors.disableKeyColor;
-                                    if(player == game!.playerPos(name)) {
+                                    if(player == game!.playerPos(widget.playerName)) {
                                       grids[player][i][j].val = game!.players[player].guesses![i].word[j];
                                     }
                                   }
@@ -359,13 +356,7 @@ class MainPageState extends State<MainPage> {
                     over == true ?
                     SizedBox(
                       height: MediaQuery.of(context).size.height*0.02,
-                      child: Text(
-                        game!.word,
-                        style: const TextStyle(
-                          color: AppColors.letterColor,
-                          fontWeight: FontWeight.bold
-                        ),
-                      ),
+                      child: AppText(text: game!.word),
                     ) : SizedBox(height: MediaQuery.of(context).size.height*0.02),
                   ],
                 ),

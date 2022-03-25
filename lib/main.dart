@@ -1,8 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:wordle/main_page.dart';
+import 'package:wordle/pages/login_page.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:wordle/utils/app_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,10 +29,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const GetMaterialApp(
+    final ThemeData theme = ThemeData();
+    return GetMaterialApp(
       title: 'Word x Word',
       debugShowCheckedModeBanner: false,
-      home: MainPage(),
+      theme: theme.copyWith(
+        colorScheme: theme.colorScheme.copyWith(
+          primary: AppColors.letterRight,
+        )
+      ),
+      home: const LoginPage(),
     );
   }
 }
