@@ -26,7 +26,7 @@ class MainPage extends StatefulWidget {
 
 
 class MainPageState extends State<MainPage> {
-  final int kPlayers = 2;
+  final int kPlayers = 4;
   final FocusNode myFocusNode = FocusNode();
   final DataRepository repository = DataRepository();
 
@@ -71,12 +71,18 @@ class MainPageState extends State<MainPage> {
     if(newWord){
       Random rdm = Random();
       game!.word = possibleWords[rdm.nextInt(possibleWords.length)].trim();
-      game!.players[0].guesses = null;
-      try {
-        game!.players[1].guesses = null;
-      }catch(e){}
-      
-      game!.reset = true;
+      for(int i = 0; i < game!.players.length; i++) {
+        try {
+          game!.players[i].guesses = null;
+        }catch(e){}
+      }
+
+      for(int i = 1; i < game!.players.length; i++) {
+        try {
+          game!.players[i].reset = true;
+        }catch(e){}
+      }    
+
       await repository.updateGame(game!);
     }
         
@@ -190,14 +196,14 @@ class MainPageState extends State<MainPage> {
       height: tileSize,
       child: Center(
         child: Container(
-          width: tileSize - 1.5 * 2,
-          height: tileSize - 1.5 * 2,
+          width: tileSize - Dimensions.smallest(Dimensions.innerGridPadding) * 2,
+          height: tileSize - Dimensions.smallest(Dimensions.innerGridPadding) * 2,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6.0),
+            borderRadius: BorderRadius.circular(Dimensions.smallest(Dimensions.innerGridRadius)),
             color: e.color,
           ),
           child: Container(
-            padding: const EdgeInsets.all(1.5),
+            padding: EdgeInsets.all(Dimensions.smallest(Dimensions.innerGridPadding)),
             child: Center(
               child: FittedBox(
                 fit: BoxFit.fitHeight,
@@ -213,12 +219,15 @@ class MainPageState extends State<MainPage> {
   void updateTiles() {
     tiles = [];
     if(game != null) {
-      gridWidth = Dimensions.width(Dimensions.gridMaxWidth);
+      gridWidth = Dimensions.width(game!.players.length >= 3 && MediaQuery.of(context).orientation == Orientation.landscape ?
+      Dimensions.gridMaxWidth4 : Dimensions.gridMaxWidth);
       tileSize = (gridWidth! - Dimensions.gridPadding * 2) / game!.word.length;
       gridHeight = tileSize!*(game!.word.length + 2) + (Dimensions.gridPadding * 2);
 
-      if(gridHeight! >= Dimensions.height(Dimensions.gridMaxHeight)) {
-        gridHeight = Dimensions.height(Dimensions.gridMaxHeight);
+      if(gridHeight! >= Dimensions.height(game!.players.length >= 3 && MediaQuery.of(context).orientation == Orientation.portrait ?
+        Dimensions.gridMaxHeight4 : Dimensions.gridMaxHeight)) {
+        gridHeight = Dimensions.height(game!.players.length >= 3 && MediaQuery.of(context).orientation == Orientation.portrait ?
+          Dimensions.gridMaxHeight4 : Dimensions.gridMaxHeight);
         tileSize = (gridHeight! - Dimensions.gridPadding * 2) / (game!.word.length + 2);
         gridWidth = tileSize!*game!.word.length + (Dimensions.gridPadding * 2);
       }
@@ -279,7 +288,6 @@ class MainPageState extends State<MainPage> {
               Container(
                 margin: EdgeInsets.only(
                   top: Dimensions.height(Dimensions.headerMarginHeight),
-                  bottom: Dimensions.height(Dimensions.headerMarginHeight),
                   left: Dimensions.width(Dimensions.headerMarginWidth),
                   right : Dimensions.width(Dimensions.headerMarginWidth),
                 ),
@@ -304,10 +312,10 @@ class MainPageState extends State<MainPage> {
                       builder: (context, snapshot) {
                         if(snapshot.hasData) {
                           game = Game.fromSnapshot(snapshot.data!);
-                          if(game!.playerPos(widget.playerName) == 1 && game!.reset == true)
+                          if(game!.players[game!.playerPos(widget.playerName)].reset == true)
                           {
                             resetWord(false);
-                            game!.reset = false;
+                            game!.players[game!.playerPos(widget.playerName)].reset  = false;
                             repository.updateGame(game!);
                           }
                           for(int player = 0; player < game!.players.length; player++) {
@@ -330,34 +338,75 @@ class MainPageState extends State<MainPage> {
                         }
 
                         return game == null || gridHeight == null || gridWidth == null ? const CircularProgressIndicator() : 
-                          Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            tiles.isNotEmpty ?
-                            WordGrid(
-                              gridWidth: gridWidth!,
-                              gridHeight: gridHeight!,
-                              playerName: game!.players[0].name,
-                              stackItems: tiles[0],
-                              iconColor: AppColors.letterRight,
-                            ) : const SizedBox(),
-                            tiles.length >= 2 ?
-                            WordGrid(
-                              gridWidth: gridWidth!,
-                              gridHeight: gridHeight!,
-                              playerName: game!.players.length > 1 ? game!.players[1].name : "Waiting...",
-                              stackItems: tiles[1],
-                              iconColor: game!.players.length > 1 ? AppColors.letterRight : AppColors.disableKeyColor,
-                            ) : const SizedBox(),
-                          ],
-                        );
+                          Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  if (tiles.isNotEmpty)
+                                  WordGrid(
+                                    gridWidth: gridWidth!,
+                                    gridHeight: gridHeight!,
+                                    playerName: game!.players[0].name,
+                                    stackItems: tiles[0],
+                                    iconColor: AppColors.letterRight,
+                                  ),
+                                  if(tiles.length > 1)
+                                  WordGrid(
+                                    gridWidth: gridWidth!,
+                                    gridHeight: gridHeight!,
+                                    playerName: game!.players.length > 1 ? game!.players[1].name : "Waiting...",
+                                    stackItems: tiles[1],
+                                    iconColor: game!.players.length > 1 ? AppColors.letterRight : AppColors.disableKeyColor,
+                                  ),
+                                  if (MediaQuery.of(context).orientation == Orientation.landscape && game!.players.length >= 3 && tiles.length > 2)
+                                  WordGrid(
+                                    gridWidth: gridWidth!,
+                                    gridHeight: gridHeight!,
+                                    playerName: game!.players[2].name,
+                                    stackItems: tiles[2],
+                                    iconColor: AppColors.letterRight,
+                                  ),
+                                  if (MediaQuery.of(context).orientation == Orientation.landscape && game!.players.length >= 4 && tiles.length > 3)
+                                  WordGrid(
+                                    gridWidth: gridWidth!,
+                                    gridHeight: gridHeight!,
+                                    playerName: game!.players[3].name,
+                                    stackItems: tiles[3],
+                                    iconColor: AppColors.letterRight,
+                                  ),
+                                ],
+                              ),
+                              if (MediaQuery.of(context).orientation == Orientation.portrait && game!.players.length >= 3 && tiles.length > 2)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  WordGrid(
+                                    gridWidth: gridWidth!,
+                                    gridHeight: gridHeight!,
+                                    playerName: game!.players[2].name,
+                                    stackItems: tiles[2],
+                                    iconColor: AppColors.letterRight,
+                                  ),
+                                  if (game!.players.length >= 4 && tiles.length > 3)
+                                  WordGrid(
+                                    gridWidth: gridWidth!,
+                                    gridHeight: gridHeight!,
+                                    playerName: game!.players[3].name,
+                                    stackItems: tiles[3],
+                                    iconColor: AppColors.letterRight,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
                       }
                     ),
                     over == true ?
                     SizedBox(
-                      height: MediaQuery.of(context).size.height*0.02,
+                      height: Dimensions.height(Dimensions.wordSize),
                       child: AppText(text: game!.word),
-                    ) : SizedBox(height: MediaQuery.of(context).size.height*0.02),
+                    ) : SizedBox(height: Dimensions.height(Dimensions.wordSize)),
                   ],
                 ),
               ),

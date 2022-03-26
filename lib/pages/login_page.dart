@@ -123,19 +123,29 @@ class _LoginPageState extends State<LoginPage> {
                       repository.checkGame(controllerRoom.text).then((doc) {
                         if(doc) {
                           repository.getGame(controllerRoom.text).then((game) {
-                            if(game.players.length == 1) {
-                              game.players.add(Player(name: controllerName.text));
-                              repository.updateGame(game);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) =>
-                                  MainPage(
-                                    playerName: controllerName.text,
-                                    roomId: controllerRoom.text,
-                                    newWord: false,
-                                  ),
+                            if(game.players.length < 4) {
+                              if(!game.players.any((player) => player.name == controllerName.text)) {
+                                game.players.add(Player(name: controllerName.text));
+                                repository.updateGame(game);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) =>
+                                    MainPage(
+                                      playerName: controllerName.text,
+                                      roomId: controllerRoom.text,
+                                      newWord: false,
+                                    ),
+                                  )
+                                );
+                              }
+                              else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Name taken!"),
+                                  duration: Duration(seconds: 1),
                                 )
                               );
+                              }
                             }
                             else {
                               ScaffoldMessenger.of(context).showSnackBar(

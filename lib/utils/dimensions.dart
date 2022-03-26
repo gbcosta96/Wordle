@@ -5,6 +5,7 @@ class Dimensions{
 
   ////////////////////////////////////////////////////////////////////
   static const double gridMaxWidth = 47.0; // %
+  static const double gridMaxWidth4 = 22.5; // %
   static const double keyboardPortraitWidth = 100.0; // %
   static const double keyboardLandscapeWidth = 50.0; // %
   static const double headerMarginWidth = 5.0; // %
@@ -12,15 +13,18 @@ class Dimensions{
 
   static const double appIconSize = 5.0; // %
 
-
-  static const double headerMarginHeight = 5.0; // % x2
+  static const double headerMarginHeight = 5.0; // % 
   static const double headerHeight = 5.0; // %
   static const double playerHeight = 8.0; // %
   static const double gridMaxHeight = 50.0; // %
+  static const double wordSize = 4.0; // %
   static const double keyboardHeight = 25.0; // %
 
+ static const double gridMaxHeight4 = 22.0; // %
 
   static const double gridPadding = 1.5; // absolut
+  static const double innerGridPadding = 0.2; // %
+  static const double innerGridRadius= 0.6; // %
   static const double keyboardWidthPadding = 6; // absolut
   static const double keyboardBottomPadding = 3; // absolut
   static const double gridRadius = 5; // absolut

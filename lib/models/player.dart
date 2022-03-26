@@ -3,8 +3,9 @@ import 'package:wordle/models/guess.dart';
 class Player {
   String name;
   List<Guess>? guesses;
+  bool? reset;
   
-  Player({required this.name, this.guesses});
+  Player({required this.name, this.guesses, this.reset});
   
   factory Player.fromJson(Map<String, dynamic> json) =>
     _playerFromJson(json);
@@ -16,7 +17,8 @@ class Player {
 Player _playerFromJson(Map<String, dynamic> json) {
   return Player(
     name: json['name'] as String,
-    guesses: json['guesses'] != null ? _convertGuesses(json['guesses'] as List<dynamic>) : null
+    guesses: json['guesses'] != null ? _convertGuesses(json['guesses'] as List<dynamic>) : null,
+    reset: json['reset']
   );
 }
 
@@ -33,6 +35,7 @@ Map<String, dynamic> _playerToJson(Player instance) {
   return <String, dynamic>{
   'name': instance.name,
   'guesses': _guessList(instance.guesses),
+  'reset': instance.reset,
   };
 }
 
