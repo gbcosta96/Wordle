@@ -21,50 +21,119 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController controllerRoom= TextEditingController();
   
   Widget _inputField(Icon prefixIcon, String hintText, bool isPassword, TextEditingController controller) {
-  return Container(
-    decoration: const BoxDecoration(
-      borderRadius: BorderRadius.all(
-        Radius.circular(50),
-      ),
-    ),
-    margin: EdgeInsets.only(bottom: Dimensions.height(Dimensions.loginSpacingHeight)),
-    child: TextField(
-      controller: controller,
-      maxLength: 12,
-      obscureText: isPassword,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w400,
-        color: AppColors.backColor,
-      ),
-      decoration: InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(vertical: Dimensions.inputPaddingHeight),
-        hintText: hintText,
-        hintStyle: const TextStyle(
-          color: AppColors.inputHint,
+    return Container(
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(
+          Radius.circular(50),
         ),
-        fillColor: Colors.white,
-        filled: true,
-        prefixIcon: prefixIcon,
-        prefixIconConstraints: BoxConstraints(
-          minWidth: Dimensions.width(Dimensions.inputPrefixWidth),
+      ),
+      margin: EdgeInsets.only(bottom: Dimensions.height(Dimensions.loginSpacingHeight)),
+      child: TextField(
+        controller: controller,
+        maxLength: 12,
+        obscureText: isPassword,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w400,
+          color: AppColors.backColor,
         ),
-        enabledBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(50),
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(vertical: Dimensions.inputPaddingHeight),
+          hintText: hintText,
+          hintStyle: const TextStyle(
+            color: AppColors.inputHint,
           ),
-          borderSide: BorderSide(color: Colors.white),
-        ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(50),
+          fillColor: Colors.white,
+          filled: true,
+          prefixIcon: prefixIcon,
+          prefixIconConstraints: BoxConstraints(
+            minWidth: Dimensions.width(Dimensions.inputPrefixWidth),
           ),
-          borderSide: BorderSide(color: Colors.white),
+          enabledBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(50),
+            ),
+            borderSide: BorderSide(color: Colors.white),
+          ),
+          focusedBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(50),
+            ),
+            borderSide: BorderSide(color: Colors.white),
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  void putSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 1),
+      )
+    );
+  }
+
+  void joinRoom() {
+    repository.checkGame(controllerRoom.text).then((doc) {
+      if(doc) {
+        repository.getGame(controllerRoom.text).then((game) {
+          if(game.players.length < 4) {
+            if(!game.players.any((player) => player.name == controllerName.text)) {
+              game.players.add(Player(name: controllerName.text));
+              repository.updateGame(game);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) =>
+                  MainPage(
+                    playerName: controllerName.text,
+                    roomId: controllerRoom.text,
+                    newWord: false,
+                  ),
+                )
+              );
+            }
+            else {
+              putSnack("Name taken!");
+            }
+          }
+          else {
+            putSnack("Room is full!");
+          }
+        });
+      }
+      else {
+        putSnack("Room doesn't exists!");
+      }
+    });
+  }
+
+  void createRoom() {
+    repository.checkGame(controllerRoom.text).then((value) {
+      if(!value) {
+        Game game = Game(players: [Player(name: controllerName.text)], word: 'WORD');
+        repository.addGame(game, controllerRoom.text);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) =>
+            MainPage(
+              playerName: controllerName.text,
+              roomId: controllerRoom.text,
+              newWord: true,
+            ),
+          )
+        );
+      }
+      else {
+        putSnack("Room already exists!");
+      }
+    });
+  }
+
+  void test() {
+    repository.test('sala1');
+  }
 
 
   @override
@@ -87,30 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      repository.checkGame(controllerRoom.text).then((value) {
-                        if(!value) {
-                          Game game = Game(players: [Player(name: controllerName.text)], word: 'WORD');
-                          repository.addGame(game, controllerRoom.text);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) =>
-                              MainPage(
-                                playerName: controllerName.text,
-                                roomId: controllerRoom.text,
-                                newWord: true,
-                              ),
-                            )
-                          );
-                        }
-                        else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Room already exists!"),
-                              duration: Duration(seconds: 1),
-                            )
-                          );
-                        }
-                      });
+                      createRoom();
                     },
                     child: Container(
                       padding: const EdgeInsets.all(Dimensions.buttonPaddingHeight),
@@ -120,52 +166,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      repository.checkGame(controllerRoom.text).then((doc) {
-                        if(doc) {
-                          repository.getGame(controllerRoom.text).then((game) {
-                            if(game.players.length < 4) {
-                              if(!game.players.any((player) => player.name == controllerName.text)) {
-                                game.players.add(Player(name: controllerName.text));
-                                repository.updateGame(game);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) =>
-                                    MainPage(
-                                      playerName: controllerName.text,
-                                      roomId: controllerRoom.text,
-                                      newWord: false,
-                                    ),
-                                  )
-                                );
-                              }
-                              else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Name taken!"),
-                                  duration: Duration(seconds: 1),
-                                )
-                              );
-                              }
-                            }
-                            else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Room is full!"),
-                                  duration: Duration(seconds: 1),
-                                )
-                              );
-                            }
-                          });
-                        }
-                        else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Room doesn't exists!"),
-                              duration: Duration(seconds: 1),
-                            )
-                          );
-                        }
-                      });
+                      joinRoom();
                     },
                     child: Container(
                       padding: const EdgeInsets.all(Dimensions.buttonPaddingHeight),
