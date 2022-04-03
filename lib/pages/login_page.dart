@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        duration: Duration(seconds: 1),
+        duration: const Duration(seconds: 1),
       )
     );
   }
@@ -78,18 +78,21 @@ class _LoginPageState extends State<LoginPage> {
   void joinRoom() {
     repository.checkGame(controllerRoom.text).then((doc) {
       if(doc) {
-        repository.getGame(controllerRoom.text).then((game) {
-          if(game.players.length < 4) {
-            if(!game.players.any((player) => player.name == controllerName.text)) {
-              game.players.add(Player(name: controllerName.text));
-              repository.updateGame(game);
+        repository.getPlayers(controllerRoom.text).then((players) {
+          if(players.length < 4) {
+            if(!players.any((player) => player.name == controllerName.text)) {
+              Player player = Player(
+                name: controllerName.text,
+                ready: false,
+                over: true,
+              );
+              repository.addPlayer(controllerRoom.text, player);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) =>
                   MainPage(
                     playerName: controllerName.text,
                     roomId: controllerRoom.text,
-                    newWord: false,
                   ),
                 )
               );
@@ -112,15 +115,22 @@ class _LoginPageState extends State<LoginPage> {
   void createRoom() {
     repository.checkGame(controllerRoom.text).then((value) {
       if(!value) {
-        Game game = Game(players: [Player(name: controllerName.text)], word: 'WORD');
-        repository.addGame(game, controllerRoom.text);
+        Game newGame = Game(
+          referenceId: controllerRoom.text,
+          word: '',
+        );
+        Player host = Player(
+          name: controllerName.text,
+          ready: false,
+          over: true,
+        );
+        repository.addGame(newGame, host);
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) =>
             MainPage(
               playerName: controllerName.text,
               roomId: controllerRoom.text,
-              newWord: true,
             ),
           )
         );
@@ -130,11 +140,6 @@ class _LoginPageState extends State<LoginPage> {
       }
     });
   }
-
-  void test() {
-    repository.test('sala1');
-  }
-
 
   @override
   Widget build(BuildContext context) {
