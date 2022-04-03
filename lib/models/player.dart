@@ -1,20 +1,28 @@
 
+import 'package:wordle/pages/main_page.dart';
+
 class Player {
   String name;
   bool ready;
-  bool over;
+  PlayState state;
+  int wins;
+  String? refId;
   
   Player({
     required this.name,
     required this.ready,
-    required this.over,
+    required this.state,
+    required this.wins,
+    this.refId,
   });
   
-  factory Player.fromJson(Map<String, dynamic> json) {
+  factory Player.fromJson(Map<String, dynamic> json, String refId) {
      return Player(
       name: json['name'],
       ready: json['ready'],
-      over: json['over'],
+      state: PlayState.values[json['state']],
+      wins: json['wins'],
+      refId: refId,
     );
   }
 
@@ -22,7 +30,8 @@ class Player {
     return <String, dynamic> {
       'name': name,
       'ready': ready,
-      'over': over,
+      'state': state.index,
+      'wins': wins,
     };
   }
 }

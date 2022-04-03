@@ -10,13 +10,15 @@ class WordGrid extends StatelessWidget {
   final String playerName;
   final List<Widget> stackItems;
   final Color iconColor;
+  final bool playerReady;
 
   const WordGrid({ Key? key,
     required this.gridWidth,
     required this.gridHeight,
     required this.playerName,
     this.iconColor = AppColors.letterRight,
-    required this.stackItems }) : super(key: key);
+    required this.stackItems,
+    required this.playerReady }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +28,24 @@ class WordGrid extends StatelessWidget {
           height: Dimensions.height(Dimensions.playerHeight),
           padding: const EdgeInsets.all(Dimensions.playerPadding),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              AppIcon(iconData: Icons.person, onTap: () => {}, iconColor: iconColor),
-              const SizedBox(width: 5),
-              AppText(text: playerName)
+              Stack(
+                children: [
+                  AppIcon(iconData: Icons.person, onTap: () => {}, iconColor: iconColor),
+                  if(playerReady)
+                    AppIcon(iconData: Icons.check, onTap: () => {}, iconColor: Colors.green),           
+                ],
+              ),
+              const SizedBox(width: 10),
+              Container(
+                constraints: BoxConstraints(maxWidth: gridWidth - 10 - Dimensions.height(Dimensions.appIconSize)),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: AppText(text: playerName),
+                ),
+              )
+              
             ],
           ),
         ),

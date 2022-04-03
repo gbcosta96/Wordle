@@ -46,7 +46,7 @@ class DataRepository {
   List<Player> playersFromSnap(List<QueryDocumentSnapshot> snap) {
     final players = <Player>[];
     for(final player in snap) {
-      players.add(Player.fromJson(player.data() as Map<String, dynamic>));
+      players.add(Player.fromJson(player.data() as Map<String, dynamic>, player.reference.id));
     }
     return players;
   }
@@ -78,6 +78,11 @@ class DataRepository {
       .set(player.toJson());
   }
 
+  Future<void> removePlayer(String gameId, Player player) async {
+    await collection.doc(gameId).collection('players')
+      .doc(player.refId).delete();
+  }
+
   Future<void> addGuess(String gameId, Guess guess) async {
     await collection.doc(gameId).collection('guesses')
       .doc(DateTime.now().millisecondsSinceEpoch.toString())
@@ -95,6 +100,10 @@ class DataRepository {
     await removeGuesses(gameId);
     await collection.doc(gameId).update({"word": word});
     //ready = false;
+  }
+
+  Future<void> updatePlayer(String gameId, Player player) async {
+    await collection.doc(gameId).collection('players').doc(player.refId).update(player.toJson());
   }
 
 }

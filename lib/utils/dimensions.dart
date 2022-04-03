@@ -13,12 +13,11 @@ class Dimensions{
 
   static const double appIconSize = 5.0; // %
 
-  static const double headerMarginHeight = 5.0; // % 
-  static const double headerHeight = 5.0; // %
+  static const double headerHeight = 13.0; // %
   static const double playerHeight = 8.0; // %
   static const double gridMaxHeight = 50.0; // %
   static const double wordSize = 4.0; // %
-  static const double keyboardHeight = 25.0; // %
+  static const double keyboardHeight = 22.0; // %
 
  static const double gridMaxHeight4 = 22.0; // %
 
@@ -40,6 +39,7 @@ class Dimensions{
   static const double buttonPaddingHeight = 10.0;
 
   static const double fontSize = 20;
+  static const double fontSizeLeaderboard = 2; // %
 
 
   static double height(double height){
